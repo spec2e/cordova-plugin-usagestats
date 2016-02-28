@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        id="net.speconsult.android"
+        version="0.1.0">
+
+    <name>Usage stats</name>
+
+    <engines>
+        <engine name="cordova" version=">=3.4.0"/>
+    </engines>
+
+    <asset src="www/usage.js" target="js/usage.js"/>
+
+    <js-module src="www/usage.js" name="usage">
+        <clobbers target="usage"/>
+    </js-module>
+
+    <platform name="android">
+
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="usage">
+                <param name="android-package" value="net.speconsult.android.usage"/>
+            </feature>
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission
+                    android:name="android.permission.PACKAGE_USAGE_STATS"
+                    tools:ignore="ProtectedPermissions"
+            />
+        </config-file>
+
+        <source-file src="src/android/Usage.java" target-dir="src/net/speconsult/android/usage/"/>
+
+    </platform>
+
+</plugin>
