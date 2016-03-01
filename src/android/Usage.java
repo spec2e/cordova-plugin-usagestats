@@ -14,13 +14,17 @@ import android.util.Log;
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Usage extends CordovaPlugin {
+
+    public static final String TAG = "stats";
 
     @Override
     public boolean execute(String action, JSONArray data, CallbackContext callbackContext) throws JSONException {
 
-/*
+
         Context context = this.cordova.getActivity();
 
         PackageManager pm = context.getPackageManager();
@@ -30,21 +34,67 @@ public class Usage extends CordovaPlugin {
         long endTime = calendar.getTimeInMillis();
         calendar.add(Calendar.HOUR, -24);
         long startTime = calendar.getTimeInMillis();
-*/
-        //List<UsageStats> usageStatsList = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime);
 
-        JSONObject jo = new JSONObject();
-        jo.put("firstName", "John");
-        jo.put("lastName", "Doe");
+        List<UsageStats> usageStatsList = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime);
+
+        Log.d(TAG, "Count of usage stats list is: " + usageStatsList.size());
 
         JSONArray ja = new JSONArray();
-        ja.put(jo);
+
+        Map<String, Long> stats = buildConsolidatedStats(usageStatsList, pm);
+
+        for (String appName : stats.keySet()) {
+            Long appMs = stats.get(appName);
+            long minutes = calcMinutes(appMs);
+                            Log.d(
+                                TAG,
+                                appName +
+                                ", " + minutes + " minutes");
+            if(minutes > 1) {
+
+
+                JSONObject jo = new JSONObject();
+                jo.put("appName", appName);
+                jo.put("minutes", minutes);
+                ja.put(jo);
+            }
+
+        }
 
         JSONObject mainObj = new JSONObject();
-        mainObj.put("employees", ja);
+        mainObj.put("applications", ja);
 
         callbackContext.success(mainObj);
 
         return true;
+    }
+
+    private Map<String, Long> buildConsolidatedStats(List<UsageStats> usageStatsList, PackageManager pm) {
+        Map<String, Long> consolidated = new HashMap<String, Long>();
+        for (UsageStats usage : usageStatsList) {
+            ApplicationInfo applicationInfo = getApplicationInfo(pm, usage);
+            String appName = (String) applicationInfo.loadLabel(pm);
+            if(consolidated.containsKey(appName)) {
+                long usageMs = consolidated.get(appName);
+                usageMs += usage.getTotalTimeInForeground();
+                consolidated.put(appName, usageMs);
+            } else {
+                consolidated.put(appName, usage.getTotalTimeInForeground());
+            }
+        }
+        return consolidated;
+    }
+
+    private ApplicationInfo getApplicationInfo(PackageManager pm, UsageStats usage) {
+        try {
+            ApplicationInfo appInfo = pm.getApplicationInfo(usage.getPackageName(), PackageManager.GET_META_DATA);
+            return appInfo;
+        } catch (PackageManager.NameNotFoundException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    private long calcMinutes(long millis) {
+        return (millis / 1000) / 60;
     }
 }
