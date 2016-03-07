@@ -24,7 +24,6 @@ public class Usage extends CordovaPlugin {
     @Override
     public boolean execute(String action, JSONArray data, CallbackContext callbackContext) throws JSONException {
 
-
         Context context = this.cordova.getActivity();
 
         PackageManager pm = context.getPackageManager();
@@ -32,7 +31,8 @@ public class Usage extends CordovaPlugin {
         UsageStatsManager usm = (UsageStatsManager) context.getSystemService("usagestats");
         Calendar calendar = Calendar.getInstance();
         long endTime = calendar.getTimeInMillis();
-        calendar.add(Calendar.HOUR, -24);
+        //Only back to midnight....
+        calendar.add(Calendar.HOUR, -calendar.get(Calendar.HOUR));
         long startTime = calendar.getTimeInMillis();
 
         List<UsageStats> usageStatsList = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime);
