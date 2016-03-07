@@ -41,21 +41,21 @@ public class Usage extends CordovaPlugin {
 
         JSONArray ja = new JSONArray();
 
-        Map<String, Long> stats = buildConsolidatedStats(usageStatsList, pm);
+        for (UsageStats usage : usageStatsList) {
 
-        for (String appName : stats.keySet()) {
-            Long appMs = stats.get(appName);
-            long minutes = calcMinutes(appMs);
-                            Log.d(
-                                TAG,
-                                appName +
-                                ", " + minutes + " minutes");
-            if(minutes > 1) {
+            Long totalTimeInForeground = usage.getTotalTimeInForeground();
 
+            if(totalTimeInForeground > 60000) {
+
+                ApplicationInfo applicationInfo = getApplicationInfo(pm, usage);
+                String appName = (String) applicationInfo.loadLabel(pm);
+
+                Long lastTimeUsed = usage.getLastTimeUsed();
 
                 JSONObject jo = new JSONObject();
                 jo.put("appName", appName);
-                jo.put("minutes", minutes);
+                jo.put("timeInForeground", totalTimeInForeground);
+                jo.put("lastTimeUsed", lastTimeUsed);
                 ja.put(jo);
             }
 
