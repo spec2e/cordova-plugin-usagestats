@@ -29,7 +29,7 @@ Create a function in the controller, that checks if the plugin is available :
 Use it like this from the template
 
 ```html
-      <ion-item ng-repeat="stat in dash.statistics">
+      <ion-item ng-repeat="stat in ctrl.statistics">
         <h2>{{stat.app}}</h2>
         <p>Usage: {{stat.minutes}} minutes</p>
       </ion-item>
